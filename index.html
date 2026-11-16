@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>cat games</title>
+<title>고양이 레슬링 3D</title>
 <style>
 :root{--panel:rgba(255,255,255,.88);--ink:#1b1b24;--hp:#e8453c;--bd:#1b1b24;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--panel:rgba(20,22,30,.88);--ink:#f2f2f7;--bd:#f2f2f7}}
@@ -805,7 +805,7 @@ function dThrow(f,tx,tz){
   b.st='fly';b.live=true;b.team=f.team;b.th=f;b.h=null;f.ball=null;f.thr=.3;f.thrCd=.4;f.noPick=.6;snd(300,.15,'sawtooth',.1,200)}
 function dDrop(c){if(!c.ball)return;const b=c.ball;c.ball=null;b.st='loose';b.h=null;b.live=false;b.vx=b.vz=0;b.vy=3}
 function dRevive(team){ // 아웃됐던 팀원 1명 부활 (먼저 아웃된 순서)
-  const i=outQ.sindIndex(f=>f.team===team&&f.out);if(i<0)return null;
+  const i=outQ.findIndex(f=>f.team===team&&f.out);if(i<0)return null;
   const f=outQ.splice(i,1)[0];
   reset(f);Object.assign(f,{out:false,ball:null,catchT:0,catchCd:0,thr:0,thrCd:0,noPick:.6,outT:0,dodge:null,reactB:null,wp:null,wpt:0,bt:0,hold:0,tgt:null,rev:.5});
   f.g.visible=true;f.mk.visible=true;f.cr.visible=false;f.g.scale.setScalar(.2);
