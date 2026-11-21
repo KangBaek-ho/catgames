@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>고양이 레슬링 3D</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>고양이 게임</title>
 <style>
 :root{--panel:rgba(255,255,255,.88);--ink:#1b1b24;--hp:#e8453c;--bd:#1b1b24;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--panel:rgba(20,22,30,.88);--ink:#f2f2f7;--bd:#f2f2f7}}
@@ -54,6 +54,16 @@ canvas{position:fixed;inset:0;display:block;z-index:0}
 #qp{position:relative;width:min(520px,92vw);max-height:92vh;overflow:auto;background:#fff;color:#000;border:4px solid #000;padding:22px 26px 26px;font-family:'Gaegu','Nanum Pen Script','Comic Sans MS',cursive,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:26px;line-height:1.5;box-sizing:border-box}
 #qp h3{margin:0 0 26px;text-align:center;font-size:32px}#qp p{margin:0 0 26px}#qp small{display:block;font-size:17px;color:#555}
 #qx{position:absolute;right:8px;top:6px;border:0;background:#e53935;color:#fff;width:32px;height:32px;border-radius:8px;font-size:16px;cursor:pointer;font-family:sans-serif}
+#tc{display:none}
+#tc,#tc *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#joy{position:fixed;z-index:9;left:calc(24px + env(safe-area-inset-left,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.25);border:3px solid rgba(255,255,255,.6);box-shadow:0 2px 10px rgba(0,0,0,.3)}
+#joy::before{content:"";position:absolute;inset:-26px}
+#jk{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;background:rgba(255,255,255,.8);border:3px solid rgba(27,27,36,.55);box-shadow:0 2px 6px rgba(0,0,0,.35);pointer-events:none}
+.tb{position:fixed;z-index:9;width:86px;height:86px;border-radius:50%;border:3px solid rgba(27,27,36,.6);background:rgba(255,255,255,.55);color:#1b1b24;font:800 15px/1.15 system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;flex-direction:column;align-items:center;justify-content:center;padding:0;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.tb b{font-size:30px;line-height:1}
+.tb.dn{background:#ffb300;transform:scale(.93)}
+#bjump{display:flex;right:calc(24px + env(safe-area-inset-right,0px));bottom:calc(36px + env(safe-area-inset-bottom,0px))}
+#bcatch{display:none;right:calc(128px + env(safe-area-inset-right,0px));bottom:calc(36px + env(safe-area-inset-bottom,0px))}
 </style></head><body>
 <div id="hud"><div class="bar"><b><span id="l1">🐱 나 (내 체력)</span> <span id="n1" style="font-size:22px">100</span></b><i><u id="h1"></u></i></div><div class="bar r"><b style="display:block;text-align:right"><span id="l2">상대 😼</span> <span id="rt"></span> <span id="n2" style="font-size:22px">100</span></b><i><u id="h2"></u></i></div></div>
 <div id="rank"></div>
@@ -68,6 +78,7 @@ canvas{position:fixed;inset:0;display:block;z-index:0}
 <div id="shop"><div id="sw"><div id="sh"><span id="st">🛒 상점 &gt; 스킨</span><b id="sg"></b><button id="sx">✕</button></div><div id="tabs"><button data-t="s" class="on">🎨 스킨</button><button data-t="g">🥊 장갑</button></div><div id="sl"></div></div></div>
 <div id="quest"><div id="qp"></div></div>
 <div id="flash"></div>
+<div id="tc"><div id="joy"><div id="jk"></div></div><button id="bcatch" class="tb"><b>✋</b>잡기</button><button id="bjump" class="tb"><b>⬆️</b>점프</button></div>
 <script>/**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -937,7 +948,7 @@ function dBot(f,dt){
 function dHud(){if(stopMode){const c=F.filter(f=>!f.out).length;$('h1').style.width=c/16*100+'%';$('h1').style.background=hpCol(c/16*100);$('n1').textContent=c+'명';$('h2').style.width=(P.out?0:100)+'%';$('h2').style.background=hpCol(P.out?0:100);$('n2').textContent=P.out?'아웃':'생존';return}[[0,'h1','n1'],[1,'h2','n2']].forEach(([t,b,n])=>{const c=F.filter(f=>f.team===t&&!f.out).length;
   $(b).style.width=c/dn*100+'%';$(b).style.background=hpCol(c/dn*100);$(n).textContent=c+'명'})}
 function dodgeFrame(dt){
-  const ix=((keys.KeyD||keys.ArrowRight)?1:0)-((keys.KeyA||keys.ArrowLeft)?1:0),iz=((keys.KeyS||keys.ArrowDown)?1:0)-((keys.KeyW||keys.ArrowUp)?1:0),n=Math.hypot(ix,iz)||1;
+  const ix=((keys.KeyD||keys.ArrowRight)?1:0)-((keys.KeyA||keys.ArrowLeft)?1:0)+joy.x,iz=((keys.KeyS||keys.ArrowDown)?1:0)-((keys.KeyW||keys.ArrowUp)?1:0)+joy.y,n=Math.hypot(ix,iz)||1;
   ndc.set(mx/innerWidth*2-1,-(my/innerHeight)*2+1);rc.setFromCamera(ndc,cam);rc.ray.intersectPlane(aimPlane,aimPt);
   const cs=Math.cos(dYaw),sn=Math.sin(dYaw);P.mvx=(ix*cs+iz*sn)/n*7;P.mvz=(iz*cs-ix*sn)/n*7; // 돌린 화면 기준으로 이동
   if(st==='count'){cnt-=dt;const c=Math.ceil(cnt);
@@ -982,20 +993,28 @@ addEventListener('keydown',e=>{keys[e.code]=1;initA();
   if(e.code==='KeyE'){if(dg2)dCatch(P);else if(keys.Space&&st==='fight'){jump(P);act(P,'jkick')}else act(P,'kick')}});
 addEventListener('keyup',e=>keys[e.code]=0);
 let mx=innerWidth/2,my=innerHeight/2;
-addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY});
-addEventListener('pointerdown',e=>{initA();mx=e.clientX;my=e.clientY});
+const onTC=e=>!!(e.target&&e.target.closest&&e.target.closest('#tc'));
+addEventListener('pointermove',e=>{if(onTC(e))return;mx=e.clientX;my=e.clientY});
+addEventListener('pointerdown',e=>{initA();if(onTC(e))return;mx=e.clientX;my=e.clientY});
 addEventListener('mousedown',e=>{if(e.target.tagName==='BUTTON')return;if(mode==='dodge'&&st!=='lobby')return;if(e.button===0)act(P,'punch',0);if(e.button===2)act(P,'punch',1)});
 addEventListener('contextmenu',e=>e.preventDefault());
 // 로비 시점 드래그 (링 안에서는 동작 안 함)
 let camYaw=0,camPit=1.0,camZ=1,drag=null;const camDist=30; // 넓은 로비: 멀리서 내려다보기 (휠로 확대/축소)
 const cv=R.domElement;cv.style.touchAction='none';
 const inDodge=()=>mode==='dodge'&&st!=='lobby';
+const tp=new Map();let pinch=null; // 터치 중인 손가락들 / 핀치 상태
+const zoomGet=()=>inDodge()?dZ:camZ,zoomSet=v=>{if(inDodge())dZ=clamp(v,.4,1.7);else if(st==='lobby')camZ=clamp(v,.4,1.5)};
 cv.addEventListener('pointerdown',e=>{
   const dg=inDodge();
   if(!(st==='lobby'||dg)||(e.pointerType==='mouse'&&e.button!==0))return;
+  if(e.pointerType==='touch'){ // 손가락 2개 = 핀치 확대/축소
+    tp.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cv.setPointerCapture(e.pointerId)}catch(_){}
+    if(tp.size>=2){const [a,b]=[...tp.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:zoomGet()};if(drag)drag.moved=true;return}}
   drag={id:e.pointerId,x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,moved:!dg}; // 로비: 바로 회전 / 피구: 살짝 클릭=던지기, 끌면=회전
   try{cv.setPointerCapture(e.pointerId)}catch(_){}if(!dg)cv.style.cursor='grabbing'});
 cv.addEventListener('pointermove',e=>{
+  const tq=tp.get(e.pointerId);if(tq){tq.x=e.clientX;tq.y=e.clientY;
+    if(pinch&&tp.size>=2){const [a,b]=[...tp.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1;zoomSet(pinch.z0*pinch.d0/d);return}}
   if(!drag||e.pointerId!==drag.id)return;
   const dg=inDodge();if(!dg&&st!=='lobby')return;
   if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>6){drag.moved=true;cv.style.cursor='grabbing'}
@@ -1003,10 +1022,34 @@ cv.addEventListener('pointermove',e=>{
   const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
   if(dg){dYaw-=dx*.006;dPit=clamp(dPit+dy*.005,.15,1.45)}else{camYaw-=dx*.006;camPit=clamp(camPit+dy*.005,.12,1.35)}
   drag.x=e.clientX;drag.y=e.clientY});
-const endDrag=e=>{if(drag&&e.pointerId===drag.id){const was=drag;drag=null;cv.style.cursor=st==='lobby'?'grab':inDodge()?'crosshair':'';
-  if(e.type==='pointerup'&&inDodge()&&!was.moved)dThrow(P)}}; // 끌지 않고 뗐으면 던지기
+const endDrag=e=>{if(tp.delete(e.pointerId)&&tp.size<2){pinch=null;if(drag){const r=tp.get(drag.id);if(r){drag.x=r.x;drag.y=r.y}}}
+  if(drag&&e.pointerId===drag.id){const was=drag;drag=null;cv.style.cursor=st==='lobby'?'grab':inDodge()?'crosshair':'';
+  if(e.type==='pointerup'&&inDodge()&&!was.moved){mx=e.clientX;my=e.clientY;ndc.set(mx/innerWidth*2-1,-(my/innerHeight)*2+1);rc.setFromCamera(ndc,cam);rc.ray.intersectPlane(aimPlane,aimPt);dThrow(P)}}}; // 끌지 않고 뗐으면 던지기
 cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);
 addEventListener('wheel',e=>{if(inDodge()){dZ=clamp(dZ*(1+Math.sign(e.deltaY)*.09),.4,1.7);e.preventDefault()}else if(st==='lobby'&&e.target===cv){camZ=clamp(camZ*(1+Math.sign(e.deltaY)*.09),.4,1.5);e.preventDefault()}},{passive:false});
+
+// ---------- 📱 모바일 터치 조작: 왼쪽 조이스틱 / 오른쪽 점프·잡기 / 핀치 확대 (로비+피구) ----------
+const joy={x:0,y:0};let touchMode=false;try{touchMode=matchMedia('(pointer:coarse)').matches}catch(e){}
+addEventListener('pointerdown',e=>{if(e.pointerType==='touch')touchMode=true},{capture:true,passive:true});
+['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
+const tcEl=$('tc'),joyEl=$('joy'),jkEl=$('jk');let joyId=null,tcShown=null;
+function joyReset(){joyId=null;joy.x=joy.y=0;jkEl.style.transform='translate(0,0)'}
+function joyMove(e){const r=joyEl.getBoundingClientRect(),R0=r.width/2-8;
+  let dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);const L=Math.hypot(dx,dy);
+  if(L>R0){dx*=R0/L;dy*=R0/L}
+  jkEl.style.transform='translate('+dx+'px,'+dy+'px)';
+  if(Math.hypot(dx,dy)/R0<.22){joy.x=joy.y=0}else{const a=Math.atan2(dy,dx);joy.x=Math.cos(a);joy.y=Math.sin(a)}}
+joyEl.addEventListener('pointerdown',e=>{e.preventDefault();initA();if(joyId!==null)return;joyId=e.pointerId;try{joyEl.setPointerCapture(e.pointerId)}catch(_){}joyMove(e)});
+joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joyId){e.preventDefault();joyMove(e)}});
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>joyEl.addEventListener(t,e=>{if(e.pointerId===joyId)joyReset()}));
+const tbtn=(id,fn)=>{const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();initA();b.classList.add('dn');fn()});
+  ['pointerup','pointercancel','pointerleave'].forEach(t=>b.addEventListener(t,()=>b.classList.remove('dn')))};
+tbtn('bjump',()=>{if(inDodge())dJump(P);else if(st==='lobby')jump(P)});
+tbtn('bcatch',()=>{if(inDodge())dCatch(P)});
+function touchTick(){const dod=inDodge(),show=touchMode&&(st==='lobby'||(dod&&st!=='over')),key=show?(dod?'d':'l'):'';
+  if(key===tcShown)return;tcShown=key;
+  tcEl.style.display=show?'block':'none';$('bcatch').style.display=dod?'flex':'none';
+  if(!show)joyReset()}
 
 // ---------- 🎄 크리스마스 퀘스트 ----------
 let Q={a:0,s:Array(20).fill(0),g:0,n:0,r:0};try{Object.assign(Q,JSON.parse(localStorage.getItem('catQ')||'{}'));if(!Array.isArray(Q.s)||Q.s.length!==20)Q.s=Array(20).fill(0)}catch(e){}
@@ -1073,6 +1116,7 @@ function hpUI(f,b,n){$(b).style.width=f.hp+'%';$(b).style.background=hpCol(f.hp)
 let last=performance.now(),lastCnt=0;
 const camP=new THREE.Vector3(0,9,19),look=new THREE.Vector3();
 function update(dt){
+  touchTick();
   snowTick(dt);
   bgmTick();
   clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>280)c.position.x=-190});
@@ -1080,7 +1124,7 @@ function update(dt){
   DPADS.forEach((q,i)=>{q.pd.rotation.y+=dt;q.rg.position.y=.35+Math.sin(performance.now()/300+i+2)*.1});SPAD.pd.rotation.y+=dt;SPAD.rg.position.y=.35+Math.sin(performance.now()/300+4)*.1;
   if(mode==='dodge'&&st!=='lobby'){dodgeFrame(dt);return}
   // 플레이어 입력
-  const ix=((keys.KeyD||keys.ArrowRight)?1:0)-((keys.KeyA||keys.ArrowLeft)?1:0),iz=((keys.KeyS||keys.ArrowDown)?1:0)-((keys.KeyW||keys.ArrowUp)?1:0);
+  const ix=((keys.KeyD||keys.ArrowRight)?1:0)-((keys.KeyA||keys.ArrowLeft)?1:0)+joy.x,iz=((keys.KeyS||keys.ArrowDown)?1:0)-((keys.KeyW||keys.ArrowUp)?1:0)+joy.y;
   const n=Math.hypot(ix,iz)||1,spd=st==='lobby'?8:5.5;
   const cs=Math.cos(camYaw),sn=Math.sin(camYaw);
   if(st==='lobby'){P.mvx=(ix*cs+iz*sn)/n*spd;P.mvz=(iz*cs-ix*sn)/n*spd} // 로비: 돌린 시점 기준으로 이동
